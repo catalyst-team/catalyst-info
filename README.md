@@ -15,10 +15,10 @@
 [![Slack](./pics/slack.svg)](https://opendatascience.slack.com/messages/CGK4KQBHD)
 [![Donate](https://raw.githubusercontent.com/catalyst-team/catalyst-pics/master/third_party_pics/patreon.png)](https://www.patreon.com/catalyst_team)
 
+**Catalyst-info** is a series of posts about the structure of [Catalyst library](https://github.com/catalyst-team/catalyst) and about its [ecosystem](https://github.com/catalyst-team)
 
 </div>
 
-**Catalyst-info** is a series of posts about the structure of [Catalyst library](https://github.com/catalyst-team/catalyst) and about its [ecosystem](https://github.com/catalyst-team)!
 
 ## #1
 catalyst-version: `19.08.6` date: `2019-08-22`
