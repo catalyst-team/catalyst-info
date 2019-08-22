@@ -6,10 +6,7 @@ catalyst-version: `19.08.6` date: `2019-08-22`
 
 ### Hello, everyone!
 
-After the release of Catalyst in February it has a lot of new features, which, 
-unfortunately, not everyone still knows about. 
-I had an idea to post a random fact about a catalyst once in `N` days (it is necessary to think about the periodicity 🤔).
-So, the first release of catalyst-info!
+After the release of Catalyst in February it has a lot of new features, which, unfortunately, not everyone still knows about. Finally, we came up with an idea to post a random fact about catalyst every. So, the first release of catalyst-info!
 
 ---
 
