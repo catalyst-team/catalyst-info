@@ -2,7 +2,7 @@
 **Catalyst-info** is a series of posts about the structure of [Catalyst library](https://github.com/catalyst-team/catalyst) and about its [ecosystem](https://github.com/catalyst-team)!
 
 ## #1
-catalyst-version: `19.08.5` date: `2019-08-22`
+catalyst-version: `19.08.6` date: `2019-08-22`
 
 ### Hello, everyone!
 
