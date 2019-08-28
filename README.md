@@ -25,6 +25,7 @@ catalyst-version: `19.08.6` date: `2019-08-27`
 Hey, everybody! This is the Catalyst-info :tada: part two!
 
 Today's post grew out of the question is any method to trace a Catalyst checkpoint with [torch.jit](https://pytorch.org/docs/stable/jit.html).
+
 **What's it for?**
 
 Traceability of Pytorch models allows you to speed up the model inference and allows you to run it not only with Python, but also with C++
@@ -40,6 +41,7 @@ Additionally it can reduce the size of the Catalyst-checkpoint, removing all but
 ---
 
 **How do you get the checkpoint in Catalyst?**
+
 To do this, there is a [command](https://github.com/catalyst-team/catalyst/blob/master/catalyst/dl/scripts/trace.py) `catalyst-dl trace <logdir>`
 
 For example...
@@ -78,6 +80,7 @@ By default, traced models are saved in `logdir/trace`, but you can change it usi
 
 ---
 **How do I download the model after training?**
+
 Once we've traced the model, it can be loaded into the python as
 ```python
 model = torch.jit.load(path)
