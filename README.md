@@ -28,7 +28,7 @@ Today's post grew out of the question is any method to trace a Catalyst checkpoi
 
 **What's it for?**
 
-Traceability of Pytorch models allows you to speed up the model inference and allows you to run it not only with Python, but also with C++
+Traceability of Pytorch models allows you to speed up the model inference and allows you to run it not only with Python, but also with C++. It becomes like a binary file, without any code requirements – one step from research to production.
 
 Additionally it can reduce the size of the Catalyst-checkpoint, removing all but the model.
 
@@ -49,8 +49,7 @@ For example...
 catalyst-dl trace /path/to/logs
 ```
 ---
-For model's tracing, Catalyst uses the same code that were damped in the checkpoint `logdir/code`, nice.
-It is made for reproducibility, so that you can always recreate its traced version from the checkpoint, even if the code in the production has already changed :+1: 
+For model's tracing, Catalyst uses the same code that was dumped during experiment, so that you can always recreate your model, even if the code in the production has already changed – reproducibility first :+1: 
 
 ---
 You are free to choose which of the checkpoints you want to trace (default is `best`) by the argument `--checkpoint` or, shortly, `-c`
