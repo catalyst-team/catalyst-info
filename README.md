@@ -24,6 +24,7 @@ catalyst-version: `19.09.4` date: `2019-09-20`
 
 Hi, everybody! This is Catalyst-Team and the new issue of Catalyst-info #3.
 Today we will talk about an important framework concept - [Runner](https://github.com/catalyst-team/catalyst/blob/master/catalyst/dl/core/runner.py).
+
 ---
 
 There are two classes at the head of Catalyst.DL philosophy:
