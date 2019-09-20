@@ -19,6 +19,58 @@
 
 </div>
 
+## Catalyst-info #3. Runners
+catalyst-version: `19.09.4` date: `2019-09-20`
+
+Hi, everybody! This is Catalyst-Team and the new issue of Catalyst-info #3.
+Today we will talk about an important framework concept - [Runner](https://github.com/catalyst-team/catalyst/blob/master/catalyst/dl/core/runner.py).
+---
+
+There are two classes at the head of Catalyst.DL philosophy:
+
+- `Experiment` is a class that contains information about the experiment - a model, a criterion, an optimizer, a scheduler and their hyperparameters. It also contains information about the data and the columns used. In general, the Experiment knows what to run. It is very important and we will talk about it next time.
+- `Runner` is a class that knows how to run an experiment. It contains all the logic of how to run the experiment, stages (another distinctive feature of Catalyst), epoch and batches.
+
+---
+
+Runner's overall concept:
+
+```python
+for stage in experimnet.stages:
+    for epoch in stage.epochs:
+        for loader in epoch.loaders:
+            for batch_in in loader:
+                batch_out = runner.forward(batch_in)
+                metrics = metrics_fn(batch_in, batch_out)
+                optimize_fn(metrics)
+```
+
+Runner has only one abstract method - `forward`, which is responsible for the logic of processing incoming data by the model.
+
+---
+
+Runner uses the `RunnerState` [class](https://github.com/catalyst-team/catalyst/blob/master/catalyst/dl/core/state.py#L15) to communicate with Callbacks.
+
+It records the current Runner parameters. For example, `batch_in` and `batch_out` , `metrics` and many others.
+
+---
+
+In addition, if you look at the classification and segmentation tasks, you can see a lot in common.  For example, only Experiment will be different for such tasks, not Runner. For this purpose, `SupervisedRunner` [appeared in Catalyst](https://github.com/catalyst-team/catalyst/blob/master/catalyst/dl/runner/supervised.py#L17).
+
+Specialized for these tasks, it additionally implements methods `train `, `infer ` and `predict_loader `. The basic purpose - to give additional syntactic sugar for faster and more convenient R&D. Suitable both for work in Notebook API, and in Config API.
+
+---
+
+Additionally, for integration with Weights & Biases, there are realizations `WandbRunner ` and `SupervisedWandbRunner `. They do the same thing, but additionally log all the information on the wandb.app, which is very convenient if you have a lot of experiments.
+
+---
+
+And finally, we're working on [GANRunner](https://github.com/catalyst-team/catalyst/pull/365) now.
+
+That will bring everyone's favorite GANs to Catalyst.
+Let's [make GAN reproducible](catalyst-team/catalyst#365) once again!
+
+
 ## Catalyst-info #2. Tracing with Torch.Jit
 catalyst-version: `19.08.6` date: `2019-08-27`
 
