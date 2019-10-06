@@ -111,11 +111,11 @@ IndexError: list index out of range
 
 ----------
 
-### [Reaction](https://github.com/catalyst-team/reaction). The youngest project Catalyst-team
+### [Reaction](https://github.com/catalyst-team/reaction). The youngest project from Catalyst-team
 
 Reaction was created as a framework for serving Catalyst models in production.
 
-With only a couple of hundred lines of code, Reaction allows you to run your models via [API](https://github.com/catalyst-team/reaction/blob/master/example/web.py#L55).
+With only a couple of hundred lines of code inside, Reaction allows you to run your models via [API](https://github.com/catalyst-team/reaction/blob/master/example/web.py#L55).
 All you need to do is describe the model and how it will [predict the requests](https://github.com/catalyst-team/reaction/blob/master/example/services.py#L26). Everything else is handled by Reaction.
 
 The service configuration is [described in YAML](https://github.com/catalyst-team/reaction/blob/master/example/docker-compose.yml).
@@ -130,7 +130,7 @@ It already has:
 
 In the near future:
 
-- Handler support (handler wrote and your queries started to be logged, sent to the database, drawn on the client's chart, etc.)
+- Handler support (you write a handler and your queries started to be logged, sent to the database, drawn on the client's chart, etc.)
 - Wrapper for starting the service by one command `catalyst-serve run --config <path>`
 
 ## Catalyst-info #3. Runners
