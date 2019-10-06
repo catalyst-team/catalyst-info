@@ -19,6 +19,120 @@
 
 </div>
 
+## Catalyst-info #4. Ecosystem
+catalyst-version: `19.10` date: `2019-10-06`
+
+Hi, everybody! Today we'll tell you about the Catalyst ecosystem, namely MLComp, Reaction, and Safitty
+
+![image 4.1](./pics/4/1.png)
+
+----------
+
+### Let's start with [MLComp](https://github.com/catalyst-team/mlcomp).
+
+In an ecosystem of Catalyst, MLComp acts as an framework for creating complex DAGs for training/validation/inference and even submitting results on Kaggle!
+All this is wrapped in a beautiful UI.
+
+![image 4.1](./pics/4/2.png)
+
+You can do a lot of things through this UI, for example:
+
+- [Grid search](https://catalyst-team.github.io/mlcomp/grid_search.html). You can simply change some parameters and go through the grid ([example](https://github.com/catalyst-team/mlcomp/blob/master/examples/digit-recognizer/grid.yml))
+- Trace models in [automatic mode](https://github.com/catalyst-team/mlcomp/blob/master/examples/digit-recognizer/all.yml#L20)
+- Train models [through the distributed mode](https://github.com/catalyst-team/mlcomp/blob/master/examples/digit-recognizer/train-distr-stage.yml#L7) through the catalysts with any number of stages
+
+Configurations for MLComp are specified in YAML
+
+![image 4.1](./pics/4/3.png)
+
+When executing a DAG, it can be stopped at any time and then continued, the weights will be taken directly from the Catalyst logs.
+
+As an executor, you can specify the Submit on Kaggle and then, after the infer, the [predictions will be automatically uploaded](https://github.com/catalyst-team/mlcomp/blob/master/mlcomp/worker/executors/kaggle.py#L61).
+
+
+----------
+
+### [Safitty](https://github.com/catalyst-team/safitty)
+
+A small addition to the Catalyst is Safitty, a mini library for reading YAML/JSON configures in a uniform format.
+
+```python
+import safitty
+
+# Reading from a file
+config = safitty.load("/path/to/config.yml")
+
+# File recording
+safitty.save(config, "/path/to/config.json")
+```
+
+And wrapping nested structures in a convenient readable format.
+
+```python
+grayscale = safitty.get(config, "reader", "params", "grayscale")
+
+# much more readable than a regular Python
+grayscale = config.get("reader", {}).get("params", {}).get("grayscale")
+```
+
+And it helps to get values safely, including from arrays (safe in this case - without exceptions)
+
+```yaml
+paths:
+  some_key:
+    - first: "value"
+    - second: "value"
+    - third:
+      - 0
+      - 1
+      - 2
+      - 3
+  images: important/path/to/images/
+```
+
+```python
+value = safitty.get(config, "paths", "some_key", 1, "third", 3)
+print(value) # 3
+
+value = safitty.get(config, "paths", "some_key", 109, "third", 3)
+print(value) # None
+```
+
+Through the properties of a normal Python we would get exception
+```python
+config["paths"]["some_key"][109]["third"][3]
+---------------------------------------------
+IndexError Traceback (most recent call last)
+<ipython-input-21-bbd29787aaba> in <module>
+----> 1 config["paths"]["jsons"][5]["third"][3]
+
+IndexError: list index out of range
+```
+
+----------
+
+### [Reaction](https://github.com/catalyst-team/reaction). The youngest project Catalyst-team
+
+Reaction was created as a framework for serving Catalyst models in production.
+
+With only a couple of hundred lines of code, Reaction allows you to run your models via [API](https://github.com/catalyst-team/reaction/blob/master/example/web.py#L55).
+All you need to do is describe the model and how it will [predict the requests](https://github.com/catalyst-team/reaction/blob/master/example/services.py#L26). Everything else is handled by Reaction.
+
+The service configuration is [described in YAML](https://github.com/catalyst-team/reaction/blob/master/example/docker-compose.yml).
+
+It already has:
+
+- Asyncs
+- Queues on RabbitMQ
+- Docker
+- Serialization/deserialization of any Python class
+- Predicts of the model, via telegram-bot
+
+In the near future:
+
+- Handler support (handler wrote and your queries started to be logged, sent to the database, drawn on the client's chart, etc.)
+- Wrapper for starting the service by one command `catalyst-serve run --config <path>`
+
 ## Catalyst-info #3. Runners
 catalyst-version: `19.09.4` date: `2019-09-20`
 
