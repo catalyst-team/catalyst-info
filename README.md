@@ -1,6 +1,6 @@
 <div align="center">
 
-![Catalyst logo](https://raw.githubusercontent.com/catalyst-team/catalyst-pics/master/pics/catalyst_logo.png)
+[![Catalyst logo](https://raw.githubusercontent.com/catalyst-team/catalyst-pics/master/pics/catalyst_logo.png)](https://github.com/catalyst-team/catalyst)
 
 **Catalyst info**
  
@@ -15,9 +15,141 @@
 [![Slack](./pics/slack.svg)](https://opendatascience.slack.com/messages/CGK4KQBHD)
 [![Donate](https://raw.githubusercontent.com/catalyst-team/catalyst-pics/master/third_party_pics/patreon.png)](https://www.patreon.com/catalyst_team)
 
-**Catalyst-info** is a series of posts about [Catalyst library](https://github.com/catalyst-team/catalyst) development and its [ecosystem](https://github.com/catalyst-team)
+**Catalyst-info** is a series of posts about [Catalyst library](https://github.com/catalyst-team/catalyst) development and its [ecosystem](https://github.com/catalyst-team).
 
 </div>
+
+You can suggest a topic for the next release via [telegram](https://t.me/catalyst_team), [gitter](https://gitter.im/catalyst-team/community) or in [issues](https://github.com/catalyst-team/catalyst-info/issues) to this repository 😉
+
+Check also our maintained [Awesome list](https://github.com/catalyst-team/awesome-catalyst-list)
+
+## Contents
+* **[#5 Callbacks](#catalyst-info-5-callbacks)**
+* **[#4. Ecosystem](#catalyst-info-4-ecosystem)**
+* **[#3. Runners](#catalyst-info-3-runners)**
+* **[#2. Tracing with Torch.Jit](#catalyst-info-2-tracing-with-torchjit)**
+* **[#1. Segmentation models](#catalyst-info-1-segmentation-models)**
+
+## Catalyst-info #5. Callbacks
+catalyst-version: `19.11` date: `2019-11-07`
+
+Hi, everybody! It's November, there's a new version [19.11](https://github.com/catalyst-team/catalyst/releases/tag/v19.11) and we're back with the new Catalyst-info. The topic is [Callbacks](https://github.com/catalyst-team/catalyst/tree/master/catalyst/dl/callbacks).
+
+---
+
+Let's look at the minimalistic train-loop for PyTorch:
+
+![image 5.1](./pics/5/train_loop.png)
+
+We do a lot of nested iterations, going through different learning stages (warmup, train, finetune, etc.), iterate by epochs, iterate by all our dataloaders (train, valid, etc.) and finally, process batches inside each dataloader in some way.
+
+This works, but how to make it customizable? To be able to add the necessary logic over the standard train-loop, we have introduced the Callbacks.
+
+---
+Any [callback](https://github.com/catalyst-team/catalyst/blob/b1d71998e8dad7604a3eb3ff0279fb275b8ae7e2/catalyst/dl/core/callback.py#L24) is the inherited of the `catalyst.dl.core.Callback` class with one or more methods implemented:
+
+![image 5.2](./pics/5/callback_methods.png)
+_From ML-REPA #2 [Deep dive into Catalyst by Roman Tezikov](https://docs.google.com/presentation/d/10dJqTGEPxk_gYKCZZdFqHHhuPUwwKNYdRhvuNphpy5E/edit?usp=sharing)_
+
+By implementing these methods you can make any additional logic possible.
+
+---
+Each method takes `catalyst.dl.core.RunnerState`:
+```python
+def on_stage_start(self, state: RunnerState):
+    pass
+
+def on_stage_end(self, state: RunnerState):
+    pass
+```
+
+This [class](https://github.com/catalyst-team/catalyst/blob/master/catalyst/dl/core/state.py#L13) is a mediator for communication between [Runner](https://github.com/catalyst-team/catalyst-info#catalyst-info-3-runners) and Callbacks. Inside it, there are such important things as the current loader `state.loader_name`, the input batch `state.input`, the output of the model `state.output`, which metric is used in the pipeline `state.main_metric`, whether it needs to be minimized `state.minimize_metric` and many others.
+Any parameter from `RunnerState` can be used in any callback.
+
+The runner takes the Callbacks from Experiment and [invokes](https://github.com/catalyst-team/catalyst/blob/d629b26fa52b7442c433aadc72a47a109e0dd6d6/catalyst/dl/core/runner.py#L108) them. There can be a lot of callbacks per Experiment.
+
+---
+A lot of callbacks are already available from the "box", for example:
+
+- CheckpointCallback to [save](https://github.com/catalyst-team/catalyst/blob/master/catalyst/dl/callbacks/checkpoint.py#L164) the best / last checkpoint
+- TensorboardLogger for [logging](https://github.com/catalyst-team/catalyst/blob/master/catalyst/dl/callbacks/logging.py#L185) metrics in tensorboard
+- EarlyStoppingCallback for an [early exit](https://github.com/catalyst-team/catalyst/blob/master/catalyst/dl/callbacks/misc.py#L33) if the metric has stopped changing
+- AccuracyCallback / AUCCallback / PrecisionRecallF1ScoreCallback - classification metrics
+- DiceCallback / IouCallback - segmentation metrics
+- and many others.
+
+A complete list of prepared callbacks can be received by executing the command:
+```python
+>>> from catalyst.dl.registry import CALLBACKS
+>>> CALLBACKS
+```
+
+---
+How are _system calls_ executed inside the trainloop, for example, `optimizer.step()`?
+
+In Catalyst's philosophy even such things are also a call-up of certain callbacks. For example:
+- [CriterionCallback](https://github.com/catalyst-team/catalyst/blob/aae8ac9e189b332fd1a0ca32c6dda48893432169/catalyst/dl/callbacks/criterion.py#L32) calculates the loss values on `on_batch_end` (there can be many)
+- [CriterionAggregatorCallback](https://github.com/catalyst-team/catalyst/blob/aae8ac9e189b332fd1a0ca32c6dda48893432169/catalyst/dl/callbacks/criterion.py#L101) aggregates all losses into one 
+ by addition or by multiplication
+- [OptimizerCallback](https://github.com/catalyst-team/catalyst/blob/725000e077c91ae33ecc43f2c75fffba79688561/catalyst/dl/callbacks/optimizer.py#L16) takes the optimizer step after the loss
+- [SchedulerCallback](https://github.com/catalyst-team/catalyst/blob/aae8ac9e189b332fd1a0ca32c6dda48893432169/catalyst/dl/callbacks/scheduler.py#L10) is doing the `lr_scheduler` step
+- etc.
+
+---
+The `order` parameter is required so that the callbacks for scheduler are not called before optimizer, and callbacks for metrics are not called before for loss.
+
+```python
+class Callback:
+    def __init__(self, order: int):
+        """
+        For order see ``CallbackOrder`` class
+        """
+        self.order = order
+```
+Formally it can be any integer, but Catalyst provides enum with standard [CallbackOrder values](https://github.com/catalyst-team/catalyst/blob/b1d71998e8dad7604a3eb3ff0279fb275b8ae7e2/catalyst/dl/core/callback.py#L13).
+
+```python
+class CallbackOrder(IntFlag):
+    Unknown = -100
+    Internal = 0  # some of the callbacks that need to be executed first
+    Criterion = 20  # for any criterion callbacks
+    Optimizer = 40  # for optimizer
+    Scheduler = 60  # for lr_scheduler
+    Metric = 80  # for metric calculations
+    External = 100  # for logs / checkpoints etc
+    Other = 200  # everything else that needs to be executed at the end
+```
+
+---
+Let us have the task of preserving the predictions of the model. To do this, we can create a callback, subscribe to the event `on_batch_end` and take the logits from the state. Then, add a scalar to tensorboard from the state.
+
+```python
+from catalyst.dl.core import Callback
+
+class MyCallback(Callback):
+  # override 
+  def on_batch_end(self, state: RunnerState):
+        # every train loader
+        if not state.need_backward:
+          return
+        
+        model_prediction = state.output["logits"]
+        max_class = model_prediction.sigmoid().argmax()
+        
+        tensorboard = state.loggers["tensorboard"].loggers[state.loader_name]
+        tensorboard.add_scalar("max_class", max_class)
+```
+
+---
+Usually, to calculate metrics it is enough to implement your callback, inherited from `catalyst.dl.core.MetricCallback`, which takes `prefix` on which it will save the metric in state and `metric_fn` - a function that [calculates the metric](https://github.com/catalyst-team/catalyst/blob/b1d71998e8dad7604a3eb3ff0279fb275b8ae7e2/catalyst/dl/core/callback.py#L100).
+```python
+outputs = state.output[self.output_key]
+targets = state.input[self.input_key]
+metric = self.metric_fn(outputs, targets, **self.metric_params)
+```
+
+---
+A [specific callback](https://github.com/catalyst-team/catalyst/blob/master/catalyst/dl/core/callback.py#L147) `catalyst.dl.core.LoggerCallback` is also implemented for loggers. Its feature is only that on `on_<event>_start` it is executed before all other callbacks, and on `on_<event>_end` and `on_exception` after all of them.
 
 ## Catalyst-info #4. Ecosystem
 catalyst-version: `19.10` date: `2019-10-06`
