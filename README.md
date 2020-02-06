@@ -283,7 +283,7 @@ There are two classes at the head of Catalyst.DL philosophy:
 Runner's overall concept:
 
 ```python
-for stage in experimnet.stages:
+for stage in experiment.stages:
     for epoch in stage.epochs:
         for loader in epoch.loaders:
             for batch_in in loader:
